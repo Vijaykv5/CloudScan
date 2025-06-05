@@ -15,6 +15,7 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+    // Only access localStorage after component is mounted
     const savedTheme = localStorage.getItem("theme") as "light" | "dark";
     if (savedTheme) {
       setTheme(savedTheme);
@@ -24,7 +25,9 @@ export default function Home() {
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+    if (mounted) {
+      localStorage.setItem("theme", newTheme);
+    }
   };
 
   // Prevent hydration mismatch by not rendering until mounted

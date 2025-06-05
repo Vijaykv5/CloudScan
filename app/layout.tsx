@@ -2,6 +2,7 @@ import type React from "react";
 import "@/app/globals.css";
 import { Mali } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Wallet } from "@/components/providers/Wallet";
 
 const mali = Mali({ 
   weight: ['200', '300', '400', '500', '600', '700'],
@@ -23,9 +24,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <div className={mali.className}>
-            {children}
-          </div>
+          <Wallet>
+            <div className={mali.className}>
+              {children}
+            </div>
+          </Wallet>
         </ThemeProvider>
       </body>
     </html>
