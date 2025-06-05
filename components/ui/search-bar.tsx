@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useWalletCheck } from "@/hooks/useWalletCheck";
+import { ReactNode } from "react";
 
 interface SearchBarProps {
   theme: "light" | "dark";
@@ -11,6 +12,8 @@ interface SearchBarProps {
   isInputFocused: boolean;
   onSearchChange: (value: string) => void;
   onFocusChange: (focused: boolean) => void;
+  buttonIcon?: ReactNode;
+  buttonText?: string;
 }
 
 export function SearchBar({
@@ -19,6 +22,8 @@ export function SearchBar({
   isInputFocused,
   onSearchChange,
   onFocusChange,
+  buttonIcon,
+  buttonText = "Random Chat"
 }: SearchBarProps) {
   const { connected, checkWalletConnection } = useWalletCheck({ 
     theme,
@@ -82,7 +87,7 @@ export function SearchBar({
             "border-0 focus-visible:ring-0 focus-visible:ring-offset-0 py-6 px-2",
             theme === "dark"
               ? "bg-slate-800 text-white placeholder:text-slate-400"
-              : ""
+              : "text-black placeholder:text-gray-500"
           )}
         />
         <Button
@@ -94,9 +99,9 @@ export function SearchBar({
           )}
           onClick={handleRandomChat}
         >
-          <Lightbulb className="h-4 w-4 mr-1 text-sky-500" />
+          {buttonIcon || <Lightbulb className="h-4 w-4 mr-1 text-sky-500" />}
           <span className={theme === "dark" ? "text-white" : ""}>
-            Random Chat
+            {buttonText}
           </span>
         </Button>
       </motion.div>

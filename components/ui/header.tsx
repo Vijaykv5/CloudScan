@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useScroll } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -7,6 +7,7 @@ import "@/components/providers/styles/wallet-adapter.css";
 import { X } from "lucide-react";
 import Image from "next/image";
 import logo from "@/public/images/logo.png";
+import { useEffect, useState } from "react";
 
 interface HeaderProps {
   theme: "light" | "dark";
@@ -15,14 +16,23 @@ interface HeaderProps {
 
 export function Header({ theme, onThemeToggle }: HeaderProps) {
   const { connected, disconnect, publicKey } = useWallet();
-  console.log(connected, publicKey);
+  const { scrollY } = useScroll();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    return scrollY.onChange((latest) => {
+      setIsScrolled(latest > 10);
+    });
+  }, [scrollY]);
 
   const handleDisconnect = () => {
     disconnect();
   };
 
   return (
-    <div className="flex justify-between items-center py-4 px-4 [font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Oxygen,Ubuntu,Cantarell,'Open_Sans','Helvetica_Neue',sans-serif]">
+    <div className={`fixed top-0 z-50 w-full max-w-7xl mx-auto flex justify-between items-center py-2 px-4 transition-all duration-300 ${
+      isScrolled ? "backdrop-blur-md bg-white/10 h-[142px] rounder-4xl" : "bg-transparent"
+    } [font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Oxygen,Ubuntu,Cantarell,'Open_Sans','Helvetica_Neue',sans-serif]`}>
       <div className="flex items-center">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -93,13 +103,13 @@ export function Header({ theme, onThemeToggle }: HeaderProps) {
           />
         </motion.div>
       </div>
-      <div className="flex items-center">
+      <div className="flex items-center gap-4 ml-auto">
         <ThemeToggle theme={theme} onToggle={onThemeToggle} />
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="ml-4 relative"
+          className="relative"
         >
           {connected && (
             <Button
