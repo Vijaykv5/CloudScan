@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import { Mali } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Wallet } from "@/components/providers/Wallet";
+import { Toaster } from "react-hot-toast";
 
 const mali = Mali({ 
   weight: ['200', '300', '400', '500', '600', '700'],
@@ -31,6 +32,7 @@ export default function RootLayout({
             <div className={mali.className}>
               {children}
             </div>
+            <Toaster position="bottom-right" />
           </Wallet>
         </ThemeProvider>
       </body>

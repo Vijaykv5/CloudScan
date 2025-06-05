@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { Search, Lightbulb } from "lucide-react";
+import { Bot, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useWalletCheck } from "@/hooks/useWalletCheck";
 
 interface SearchBarProps {
   theme: "light" | "dark";
@@ -19,6 +20,26 @@ export function SearchBar({
   onSearchChange,
   onFocusChange,
 }: SearchBarProps) {
+  const { connected, checkWalletConnection } = useWalletCheck({ 
+    theme,
+    onDisconnect: () => {
+      onSearchChange(""); // Clear the input field whenever the wallet gots disconnects
+    }
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!checkWalletConnection()) {
+      return;
+    }
+    onSearchChange(e.target.value);
+  };
+
+  const handleRandomChat = () => {
+    if (!checkWalletConnection()) {
+      return;
+    }
+  };
+
   return (
     <motion.div
       className="w-full max-w-xl mx-auto relative"
@@ -26,24 +47,35 @@ export function SearchBar({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <div
+      <motion.div
         className={cn(
-          "flex items-center bg-white rounded-full overflow-hidden transition-all duration-300 shadow-sm",
-          isInputFocused ? "shadow-lg ring-2 ring-sky-200" : "",
+          "flex items-center bg-white overflow-hidden transition-all duration-300 shadow-sm",
+          isInputFocused ? "shadow-lg ring-2 ring-sky-200 " : "rounded-3xl",
           theme === "dark" ? "bg-slate-800" : "bg-white"
         )}
+        animate={{
+          borderRadius: isInputFocused ? "0.75rem" : "1rem",
+        }}
+        transition={{ duration: 0.3 }}
       >
-        <Search
-          className={cn(
-            "h-5 w-5 ml-4",
-            theme === "dark" ? "text-slate-400" : "text-slate-500"
-          )}
-        />
+        <motion.div
+          animate={{
+            scale: isInputFocused ? 1.1 : 1,
+          }}
+          transition={{ duration: 0.2 }}
+        >
+          <Bot
+            className={cn(
+              "h-5 w-5 ml-4",
+              theme === "dark" ? "text-sky-400" : "text-sky-500"
+            )}
+          />
+        </motion.div>
         <Input
           type="text"
-          placeholder="Describe your cloud project idea..."
+          placeholder={connected ? "Describe your cloud project idea..." : "Connect wallet to start chatting..."}
           value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={handleInputChange}
           onFocus={() => onFocusChange(true)}
           onBlur={() => onFocusChange(false)}
           className={cn(
@@ -60,13 +92,14 @@ export function SearchBar({
             "mr-2 rounded-full hover:bg-sky-50",
             theme === "dark" ? "hover:bg-slate-700" : ""
           )}
+          onClick={handleRandomChat}
         >
           <Lightbulb className="h-4 w-4 mr-1 text-sky-500" />
           <span className={theme === "dark" ? "text-white" : ""}>
-            Random Idea
+            Random Chat
           </span>
         </Button>
-      </div>
+      </motion.div>
     </motion.div>
   );
 } 
