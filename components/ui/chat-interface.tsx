@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { SearchBar
- } from '@/components/ui/search-bar';
+import { SearchBar } from '@/components/ui/search-bar';
 import { Send, Lightbulb } from 'lucide-react';
+import { useStore } from '@/store/useStore';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -15,16 +16,30 @@ interface Message {
 interface ChatInterfaceProps {
   theme: 'light' | 'dark';
   onFirstChat?: () => void;
+  onDisconnect?: () => void;
 }
 
-export function ChatInterface({ theme, onFirstChat }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfaceProps) {
+  const { publicKey, connected } = useWallet();
+  const { messages, currentWallet, isLoading, setCurrentWallet, addMessage, setIsLoading, clearMessages } = useStore();
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [showInput, setShowInput] = useState(true);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isInitialState, setIsInitialState] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Update current wallet when publicKey changes
+  useEffect(() => {
+    if (publicKey && connected) {
+      setCurrentWallet(publicKey.toString());
+    } else {
+      setCurrentWallet(null);
+      setIsInitialState(true);
+      setInput('');
+      clearMessages();
+      onDisconnect?.();
+    }
+  }, [publicKey, connected, setCurrentWallet, clearMessages, onDisconnect]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -32,15 +47,15 @@ export function ChatInterface({ theme, onFirstChat }: ChatInterfaceProps) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, currentWallet]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || !currentWallet) return;
 
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    addMessage({ role: 'user', content: userMessage });
     
     if (isInitialState) {
       setIsInitialState(false);
@@ -48,6 +63,7 @@ export function ChatInterface({ theme, onFirstChat }: ChatInterfaceProps) {
     }
 
     try {
+      setIsLoading(true);
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -62,24 +78,28 @@ export function ChatInterface({ theme, onFirstChat }: ChatInterfaceProps) {
         throw new Error(data.details || data.error || 'Failed to process request');
       }
 
-      setMessages(prev => [...prev, {
+      addMessage({
         role: 'assistant',
         content: data.response,
         blockchainData: data.blockchainData
-      }]);
+      });
     } catch (error) {
       console.error('Error:', error);
-      setMessages(prev => [...prev, {
+      addMessage({
         role: 'assistant',
         content: 'Sorry, I encountered an error while processing your request.',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
-      }]);
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const currentMessages = currentWallet ? messages[currentWallet] || [] : [];
+
   return (
     <div className="w-full min-h-screen flex flex-col relative">
-      {isInitialState ? (
+      {isInitialState || !connected ? (
         <div className="flex-1 flex items-start justify-center pt-4">
           <AnimatePresence>
             {showInput && (
@@ -98,7 +118,7 @@ export function ChatInterface({ theme, onFirstChat }: ChatInterfaceProps) {
                     onSearchChange={setInput}
                     onFocusChange={setIsInputFocused}
                     buttonIcon={<Lightbulb className="h-4 w-4 mr-1 text-sky-500" />}
-                    buttonText="Random Idea"
+                    buttonText={connected ? "Random Idea" : "Connect Wallet to Start"}
                   />
                 </form>
               </motion.div>
@@ -109,9 +129,9 @@ export function ChatInterface({ theme, onFirstChat }: ChatInterfaceProps) {
         <>
           <div className="flex-1 flex flex-col pb-48 overflow-y-auto">
             <AnimatePresence>
-              {messages.map((message, index) => (
+              {currentMessages.map((message, index) => (
                 <motion.div
-                  key={index}
+                  key={message.timestamp}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -169,8 +189,8 @@ export function ChatInterface({ theme, onFirstChat }: ChatInterfaceProps) {
                       isInputFocused={isInputFocused}
                       onSearchChange={setInput}
                       onFocusChange={setIsInputFocused}
-                      buttonIcon={<Send className="h-4 w-4 mr-1 text-sky-500" />}
-                      buttonText="Send"
+                      buttonIcon={isLoading ? null : <Send className="h-4 w-4 mr-1 text-sky-500" />}
+                      buttonText={isLoading ? "Processing..." : "Send"}
                     />
                   </form>
                 </motion.div>

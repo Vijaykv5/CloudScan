@@ -1,37 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/ui/header";
 import { ChatInterface } from "@/components/ui/chat-interface";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [mounted, setMounted] = useState(false);
   const [showTitle, setShowTitle] = useState(true);
-
-  useEffect(() => {
-    setMounted(true);
-    // Only access localStorage after component is mounted
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark";
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-  }, []);
+  const { connected } = useWallet();
 
   const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    if (mounted) {
-      localStorage.setItem("theme", newTheme);
-    }
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
-  // Prevent hydration mismatch by not rendering until mounted
-  if (!mounted) {
-    return null;
-  }
+  const handleFirstChat = () => {
+    setShowTitle(false);
+  };
+
+  const handleDisconnect = () => {
+    setShowTitle(true);
+  };
 
   return (
     <div
@@ -51,24 +42,30 @@ export default function Home() {
         <Header theme={theme} onThemeToggle={toggleTheme} />
 
         <div className="flex flex-col items-center justify-center pt-36 pb-16">
-          {showTitle && (
-            <motion.h1
-              className={cn(
-                "text-3xl md:text-4xl font-bold text-center mb-8",
-                theme === "dark" ? "text-white" : "text-slate-800"
-              )}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-            >
-              Chat with your <span className="text-sky-500">Wallet</span> in
-              seconds
-            </motion.h1>
-          )}
+          <AnimatePresence>
+            {showTitle && (
+              <motion.h1
+                className={cn(
+                  "text-3xl md:text-4xl font-bold text-center mb-8",
+                  theme === "dark" ? "text-white" : "text-slate-800"
+                )}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+              >
+                Chat with your <span className="text-sky-500">Wallet</span> in
+                seconds
+              </motion.h1>
+            )}
+          </AnimatePresence>
 
           <div className="w-full max-w-xl mx-auto">
-            <ChatInterface theme={theme} onFirstChat={() => setShowTitle(false)} />
+            <ChatInterface 
+              theme={theme} 
+              onFirstChat={handleFirstChat} 
+              onDisconnect={handleDisconnect}
+            />
           </div>
         </div>
       </div>

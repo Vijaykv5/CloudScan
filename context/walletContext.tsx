@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
+import { useStore } from "@/store/useStore";
 
 interface WalletContextType {
   isWalletConnected: boolean;
   loading: boolean;
-  setIsWalletConnected: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -24,31 +24,22 @@ interface WalletContextProviderProps {
 export const WalletContextProvider: React.FC<WalletContextProviderProps> = ({
   children,
 }) => {
-  const { connected } = useSolanaWallet();
-  const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { connected, publicKey } = useSolanaWallet();
+  const { setCurrentWallet } = useStore();
+  const [loading, setLoading] = React.useState<boolean>(true);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedConnection = localStorage.getItem("walletConnected");
-      setIsWalletConnected(savedConnection === "true");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (connected) {
-      setIsWalletConnected(true);
-      localStorage.setItem("walletConnected", "true");
+    if (connected && publicKey) {
+      setCurrentWallet(publicKey.toString());
     } else {
-      setIsWalletConnected(false);
-      localStorage.setItem("walletConnected", "false");
+      setCurrentWallet(null);
     }
     setLoading(false);
-  }, [connected]);
+  }, [connected, publicKey, setCurrentWallet]);
 
   return (
     <WalletContext.Provider
-      value={{ isWalletConnected, setIsWalletConnected, loading }}
+      value={{ isWalletConnected: connected, loading }}
     >
       {children}
     </WalletContext.Provider>
