@@ -11,8 +11,8 @@ const mali = Mali({
 });
 
 export const metadata = {
-  title: "Cloud Project Creator",
-  description: "Create your cloud project in seconds",
+  title: "Cloudscan",
+  description: "Know more about your wallet in seconds",
 };
 
 export default function RootLayout({
@@ -22,6 +22,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <Wallet>
