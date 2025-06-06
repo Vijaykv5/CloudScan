@@ -38,6 +38,20 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
   const [isInitialState, setIsInitialState] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const currentMessages = currentWallet && activeChats[currentWallet] 
+    ? activeChats[currentWallet].messages 
+    : [];
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (currentMessages.length > 0 && currentMessages[currentMessages.length - 1].role === 'assistant') {
+      scrollToBottom();
+    }
+  }, [currentMessages]);
+
   // Update current wallet when publicKey changes
   useEffect(() => {
     if (publicKey && connected) {
@@ -50,14 +64,6 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
       onDisconnect?.();
     }
   }, [publicKey, connected, setCurrentWallet, moveToHistory, onDisconnect]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [activeChats, currentWallet]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,10 +111,6 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
     }
   };
 
-  const currentMessages = currentWallet && activeChats[currentWallet] 
-    ? activeChats[currentWallet].messages 
-    : [];
-
   return (
     <div className="w-full min-h-screen flex flex-col relative">
       {isInitialState || !connected ? (
@@ -139,7 +141,7 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
         </div>
       ) : (
         <>
-          <div className="flex-1 flex flex-col pb-48 overflow-y-auto">
+          <div className="flex-1 flex flex-col pb-48 overflow-y-auto pt-24">
             <AnimatePresence>
               {currentMessages.map((message, index) => (
                 <motion.div
@@ -152,7 +154,7 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
                     message.role === 'user'
                       ? 'bg-sky-500 text-white'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white',
-                    index === 0 ? 'max-w-3xl mx-auto mt-8' : 'max-w-[90%] mx-auto mt-4'
+                    index === 0 ? 'max-w-3xl mx-auto' : 'max-w-[90%] mx-auto'
                   )}
                 >
                   <p className={cn(
