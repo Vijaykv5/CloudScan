@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/ui/header";
 import { ChatInterface } from "@/components/ui/chat-interface";
+import { Sidebar } from "@/components/ui/sidebar";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 export default function Home() {
@@ -38,6 +39,7 @@ export default function Home() {
           opacity: theme === "dark" ? 0.3 : 1,
         }}
       />
+      <Sidebar theme={theme} />
       <div className="relative z-10 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <Header theme={theme} onThemeToggle={toggleTheme} />
 

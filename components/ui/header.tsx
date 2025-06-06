@@ -31,7 +31,7 @@ export function Header({ theme, onThemeToggle }: HeaderProps) {
 
   return (
     <div className={`fixed top-0 z-50 w-full max-w-7xl mx-auto flex justify-between items-center py-2 px-4 transition-all duration-300 ${
-      isScrolled ? "backdrop-blur-md bg-white/10 h-[142px] rounder-4xl" : "bg-transparent"
+      isScrolled ? "backdrop-blur-md bg-white/10 h-[142px] rounded-b-3xl" : "bg-transparent"
     } [font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Oxygen,Ubuntu,Cantarell,'Open_Sans','Helvetica_Neue',sans-serif]`}>
       <div className="flex items-center">
         <motion.div

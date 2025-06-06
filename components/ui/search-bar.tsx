@@ -83,6 +83,15 @@ export function SearchBar({
           onChange={handleInputChange}
           onFocus={() => onFocusChange(true)}
           onBlur={() => onFocusChange(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              const form = e.currentTarget.closest('form');
+              if (form) {
+                form.requestSubmit();
+              }
+            }
+          }}
           className={cn(
             "border-0 focus-visible:ring-0 focus-visible:ring-offset-0 py-6 px-2",
             theme === "dark"

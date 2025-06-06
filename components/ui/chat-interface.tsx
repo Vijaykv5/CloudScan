@@ -21,7 +21,17 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfaceProps) {
   const { publicKey, connected } = useWallet();
-  const { messages, currentWallet, isLoading, setCurrentWallet, addMessage, setIsLoading, clearMessages } = useStore();
+  const { 
+    activeChats, 
+    currentWallet, 
+    isLoading, 
+    setCurrentWallet, 
+    addMessage, 
+    setIsLoading, 
+    clearActiveChat,
+    moveToHistory 
+  } = useStore();
+  
   const [input, setInput] = useState('');
   const [showInput, setShowInput] = useState(true);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -36,10 +46,10 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
       setCurrentWallet(null);
       setIsInitialState(true);
       setInput('');
-      clearMessages();
+      moveToHistory(); // Move current chat to history when disconnecting
       onDisconnect?.();
     }
-  }, [publicKey, connected, setCurrentWallet, clearMessages, onDisconnect]);
+  }, [publicKey, connected, setCurrentWallet, moveToHistory, onDisconnect]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -47,7 +57,7 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, currentWallet]);
+  }, [activeChats, currentWallet]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +105,9 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
     }
   };
 
-  const currentMessages = currentWallet ? messages[currentWallet] || [] : [];
+  const currentMessages = currentWallet && activeChats[currentWallet] 
+    ? activeChats[currentWallet].messages 
+    : [];
 
   return (
     <div className="w-full min-h-screen flex flex-col relative">
