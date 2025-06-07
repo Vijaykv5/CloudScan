@@ -14,6 +14,7 @@ interface SearchBarProps {
   onFocusChange: (focused: boolean) => void;
   buttonIcon?: ReactNode;
   buttonText?: string;
+  onRandomIdeaClick?: () => void;
 }
 
 export function SearchBar({
@@ -23,7 +24,8 @@ export function SearchBar({
   onSearchChange,
   onFocusChange,
   buttonIcon,
-  buttonText = "Random Chat"
+  buttonText = "Random Chat",
+  onRandomIdeaClick
 }: SearchBarProps) {
   const { connected, checkWalletConnection } = useWalletCheck({ 
     theme,
@@ -43,6 +45,7 @@ export function SearchBar({
     if (!checkWalletConnection()) {
       return;
     }
+    if (onRandomIdeaClick) onRandomIdeaClick();
   };
 
   return (

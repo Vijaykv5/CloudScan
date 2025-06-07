@@ -12,13 +12,19 @@ export async function generateTransactionSummary(transactionData: {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     
-    const prompt = `Analyze this Solana transaction and provide a concise summary in maximum 3 sentences:
+    const prompt = `Analyze this Solana transaction and provide a natural, conversational summary in 2-3 sentences. Focus on what the transaction means for the user:
+
     Type: ${transactionData.type}
     Timestamp: ${new Date(transactionData.timestamp * 1000).toLocaleString()}
     Signature: ${transactionData.signature}
     ${transactionData.details ? `Details: ${JSON.stringify(transactionData.details)}` : ''}
     
-    Focus on the most important aspects and keep the summary clear and informative.`;
+    Guidelines:
+    - Use natural, conversational language
+    - Explain what the transaction means in practical terms
+    - Focus on the impact or purpose of the transaction
+    - Avoid technical jargon unless necessary
+    - Keep it concise but informative`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;

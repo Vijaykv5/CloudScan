@@ -5,6 +5,8 @@ import { SearchBar } from '@/components/ui/search-bar';
 import { Send, Lightbulb } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { AIResponse } from '@/components/ai-response';
+import { Suggestions } from '@/components/ui/suggestions';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -36,6 +38,7 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
   const [showInput, setShowInput] = useState(true);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isInitialState, setIsInitialState] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const currentMessages = currentWallet && activeChats[currentWallet] 
@@ -52,7 +55,6 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
     }
   }, [currentMessages]);
 
-  // Update current wallet when publicKey changes
   useEffect(() => {
     if (publicKey && connected) {
       setCurrentWallet(publicKey.toString());
@@ -60,10 +62,10 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
       setCurrentWallet(null);
       setIsInitialState(true);
       setInput('');
-      moveToHistory(); // Move current chat to history when disconnecting
+      clearActiveChat(); // Clear active chat immediately
       onDisconnect?.();
     }
-  }, [publicKey, connected, setCurrentWallet, moveToHistory, onDisconnect]);
+  }, [publicKey, connected, setCurrentWallet, clearActiveChat, onDisconnect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +113,16 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
     }
   };
 
+  const handleSuggestionSelect = (suggestion: string) => {
+    setShowSuggestions(false);
+    setInput(suggestion);
+    setTimeout(() => {
+      // Submit the suggestion as a chat message
+      const form = document.querySelector('form');
+      if (form) form.requestSubmit();
+    }, 100);
+  };
+
   return (
     <div className="w-full min-h-screen flex flex-col relative">
       {isInitialState || !connected ? (
@@ -133,8 +145,15 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
                     onFocusChange={setIsInputFocused}
                     buttonIcon={<Lightbulb className="h-4 w-4 mr-1 text-sky-500" />}
                     buttonText={connected ? "Random Idea" : "Connect Wallet to Start"}
+                    onRandomIdeaClick={() => setShowSuggestions(true)}
                   />
                 </form>
+                {showSuggestions && (
+                  <Suggestions
+                    onSelect={handleSuggestionSelect}
+                    theme={theme}
+                  />
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -144,38 +163,11 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
           <div className="flex-1 flex flex-col pb-48 overflow-y-auto pt-24">
             <AnimatePresence>
               {currentMessages.map((message, index) => (
-                <motion.div
+                <AIResponse
                   key={message.timestamp}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className={cn(
-                    'mb-4 p-4 rounded-lg text-center',
-                    message.role === 'user'
-                      ? 'bg-sky-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white',
-                    index === 0 ? 'max-w-3xl mx-auto' : 'max-w-[90%] mx-auto'
-                  )}
-                >
-                  <p className={cn(
-                    "text-sm",
-                    index === 0 ? "text-base" : ""
-                  )}>
-                    {message.content}
-                  </p>
-                  {message.error && (
-                    <p className="mt-2 text-sm text-red-500">
-                      Error: {message.error}
-                    </p>
-                  )}
-                  {message.blockchainData && (
-                    <div className="mt-2 p-2 bg-gray-200 dark:bg-gray-700 rounded">
-                      <pre className="text-xs overflow-x-auto">
-                        {JSON.stringify(message.blockchainData, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                </motion.div>
+                  message={message}
+                  isFirstMessage={index === 0}
+                />
               ))}
             </AnimatePresence>
             <div ref={messagesEndRef} />
