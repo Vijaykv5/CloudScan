@@ -26,8 +26,7 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
   const { checkWalletConnection } = useWalletCheck({ theme });
   const { 
     activeChats, 
-    currentWallet, 
-    isLoading, 
+    currentWallet,  
     setCurrentWallet, 
     addMessage, 
     setIsLoading, 
@@ -70,12 +69,12 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
     }
   }, [publicKey, connected, setCurrentWallet, clearActiveChat, onDisconnect]);
 
-  const handleWalletQuery = (response: string) => {
-    addMessage({
-      role: 'assistant',
-      content: response
-    });
-  };
+  // const handleWalletQuery = (response: string) => {
+  //   addMessage({
+  //     role: 'assistant',
+  //     content: response
+  //   });
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
