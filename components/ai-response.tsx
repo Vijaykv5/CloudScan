@@ -1,18 +1,7 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Response } from "./response";
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  blockchainData?: any;
-  error?: string;
-}
-
-interface AIResponseProps {
-  message: Message;
-  isFirstMessage?: boolean;
-}
+import { AIResponseProps } from "../lib/types/index";
 
 export function AIResponse({ message, isFirstMessage }: AIResponseProps) {
   return (
@@ -38,7 +27,6 @@ export function AIResponse({ message, isFirstMessage }: AIResponseProps) {
       ) : (
         <Response 
           response={message.content}
-          blockchainData={message.blockchainData}
         />
       )}
       

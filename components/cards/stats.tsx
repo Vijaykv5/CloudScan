@@ -2,30 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { ArrowUpRight, ArrowDownLeft, Clock, Hash, DollarSign, TrendingUp } from "lucide-react";
-
-interface TokenStats {
-  balance: number;
-  symbol: string;
-  name: string;
-  decimals: number;
-  mint: string;
-  price?: number;
-  change24h?: number;
-}
-
-interface TransactionData {
-  type: string;
-  timestamp: number;
-  signature: string;
-  summary?: string;
-  details?: any;
-}
-
-interface StatsCardProps {
-  tokenStats: TokenStats;
-  transactionData?: TransactionData;
-  className?: string;
-}
+import { StatsCardProps } from "../../lib/types/index";
 
 export function StatsCard({ tokenStats, transactionData, className }: StatsCardProps) {
   const formattedBalance = tokenStats.balance / Math.pow(10, tokenStats.decimals);

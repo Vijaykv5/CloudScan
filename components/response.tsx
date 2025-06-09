@@ -1,34 +1,7 @@
 import { motion } from "framer-motion";
-import { Clock, Hash, ArrowUpRight, ArrowDownLeft, DollarSign, TrendingUp } from "lucide-react";
+import { Clock, Hash, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface BlockchainData {
-  accountInfo?: {
-    balance: {
-      lamports: number;
-      sol: number;
-    };
-    owner: string;
-    executable: boolean;
-    rentEpoch: number;
-    space: number;
-    data: string;
-  };
-  balance?: number;
-  transaction?: {
-    type: string;
-    timestamp: number;
-    signature: string;
-    summary?: string;
-    details?: any;
-  };
-}
-
-interface ResponseProps {
-  response: string;
-  blockchainData?: BlockchainData;
-  className?: string;
-}
+import {ResponseProps } from "../lib/types/index";
 
 export function Response({ response, blockchainData, className }: ResponseProps) {
   return (

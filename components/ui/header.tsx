@@ -15,7 +15,7 @@ interface HeaderProps {
 }
 
 export function Header({ theme, onThemeToggle }: HeaderProps) {
-  const { connected, disconnect, publicKey } = useWallet();
+  const { connected, disconnect } = useWallet();
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
 

@@ -11,7 +11,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [showTitle, setShowTitle] = useState(true);
-  const { connected } = useWallet();
+  const { } = useWallet();
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");

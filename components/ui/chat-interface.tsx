@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Send, Lightbulb } from 'lucide-react';
 import { useStore } from '@/store/useStore';
@@ -8,12 +7,12 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { AIResponse } from '@/components/ai-response';
 import { Suggestions } from '@/components/ui/suggestions';
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  blockchainData?: any;
-  error?: string;
-}
+// interface Message {
+//   role: 'user' | 'assistant';
+//   content: string;
+//   blockchainData?: any;
+//   error?: string;
+// }
 
 interface ChatInterfaceProps {
   theme: 'light' | 'dark';
@@ -30,20 +29,22 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
     setCurrentWallet, 
     addMessage, 
     setIsLoading, 
-    clearActiveChat,
-    moveToHistory 
+    clearActiveChat
   } = useStore();
   
   const [input, setInput] = useState('');
-  const [showInput, setShowInput] = useState(true);
+  const showInput = true; // Since we're not changing this value, we can make it a constant
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isInitialState, setIsInitialState] = useState(true);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const currentMessages = currentWallet && activeChats[currentWallet] 
-    ? activeChats[currentWallet].messages 
-    : [];
+  const currentMessages = useMemo(() => 
+    currentWallet && activeChats[currentWallet] 
+      ? activeChats[currentWallet].messages 
+      : [],
+    [currentWallet, activeChats]
+  );
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -8,7 +8,7 @@ export function SidebarItems({ items }: SidebarItemsProps) {
   let lastDateLabel: string | undefined = undefined;
   return (
     <div className="flex flex-col gap-2 mt-4">
-      {items.map((item, idx) => (
+      {items.map((item) => (
         <React.Fragment key={item.id}>
           {item.dateLabel && item.dateLabel !== lastDateLabel && (
             <div className="text-xs text-gray-400 font-medium mb-1 mt-2">

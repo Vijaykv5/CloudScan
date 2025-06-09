@@ -10,26 +10,12 @@ import {
   LedgerWalletAdapter,
   SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import { FC, useMemo } from "react";
+import { useMemo } from "react";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import { WalletContextProvider } from "@/context/walletContext";
-// import { ErrorBoundary } from "next/dist/client/components/error-boundary";
+import { WalletProviderProps } from "../../lib/types/index";
 
-type Props = {
-  children?: React.ReactNode;
-};
-
-function ErrorFallback({ error, resetErrorBoundary }: any) {
-  return (
-    <div role="alert">
-      <p>Something went wrong:</p>
-      <pre>{error.message}</pre>
-      <button onClick={resetErrorBoundary}>Try again</button>
-    </div>
-  );
-}
-
-export const Wallet: FC<Props> = ({ children }) => {
+export const Wallet: React.FC<WalletProviderProps> = ({ children }) => {
   const endpoint = "https://api-devnet.helius.xyz";
 
   const wallets = useMemo(
@@ -42,14 +28,12 @@ export const Wallet: FC<Props> = ({ children }) => {
   );
 
   return (
-    // <ErrorBoundary FallbackComponent={ErrorFallback}>`
-      <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets} autoConnect={true}>
-          <WalletModalProvider>
-            <WalletContextProvider>{children}</WalletContextProvider>
-          </WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
-    // </ErrorBoundary>
+    <ConnectionProvider endpoint={endpoint}>
+      <WalletProvider wallets={wallets} autoConnect={true}>
+        <WalletModalProvider>
+          <WalletContextProvider>{children}</WalletContextProvider>
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
   );
 };

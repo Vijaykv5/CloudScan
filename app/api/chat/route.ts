@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { Helius } from 'helius-sdk';
 import type { EnrichedTransaction } from 'helius-sdk';
+import { BlockchainDataFull } from '@/lib/types';
 
 // Initialize Gemini client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
@@ -20,7 +21,7 @@ async function getAccountInfo(address: string) {
     const accountInfo = await connection.getAccountInfo(pubKey);
     
     if (!accountInfo) {
-      return null;
+      return undefined;
     }
 
     return {
@@ -30,13 +31,13 @@ async function getAccountInfo(address: string) {
       },
       owner: accountInfo.owner.toBase58(),
       executable: accountInfo.executable,
-      rentEpoch: accountInfo.rentEpoch,
+      rentEpoch: accountInfo.rentEpoch ?? 0, // Provide default value of 0 if undefined
       space: accountInfo.data.length,
       data: accountInfo.data.length > 0 ? 'Contains data' : 'No data'
     };
   } catch (error) {
     console.error('Error fetching account info:', error);
-    return null;
+    return undefined;
   }
 }
 
@@ -72,13 +73,15 @@ async function getTransactionDetails(signature: string) {
   }
 }
 
-// Helper function to generate transaction summary using Gemini
-async function generateTransactionSummary(transactionData: {
+interface TransactionData {
   type: string;
   timestamp: number;
   signature: string;
-  details?: any;
-}) {
+  details?: Record<string, unknown>;
+}
+
+// Helper function to generate transaction summary using Gemini
+async function generateTransactionSummary(transactionData: TransactionData) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     
@@ -167,13 +170,15 @@ export async function POST(req: Request) {
     console.log('Gemini response:', aiResponse);
 
     // Extract blockchain data requirements from AI response
-    let blockchainData = {};
+    let blockchainData: BlockchainDataFull = {};
     
     if (aiResponse?.includes('ACCOUNT_INFO')) {
       const addressMatch = aiResponse.match(/Address: ([A-Za-z0-9]+)/);
       if (addressMatch) {
         const accountInfo = await getAccountInfo(addressMatch[1]);
-        blockchainData = { ...blockchainData, accountInfo };
+        if (accountInfo) {
+          blockchainData = { ...blockchainData, accountInfo };
+        }
       }
     }
 
@@ -181,7 +186,9 @@ export async function POST(req: Request) {
       const addressMatch = aiResponse.match(/Address: ([A-Za-z0-9]+)/);
       if (addressMatch) {
         const balance = await getTokenBalance(addressMatch[1]);
-        blockchainData = { ...blockchainData, balance };
+        if (balance !== null) {
+          blockchainData = { ...blockchainData, balance };
+        }
       }
     }
 
@@ -194,13 +201,16 @@ export async function POST(req: Request) {
             type: transaction.type || 'Unknown',
             timestamp: transaction.timestamp,
             signature: signatureMatch[1],
-            details: transaction
+            details: JSON.parse(JSON.stringify(transaction))
           });
           blockchainData = { 
             ...blockchainData, 
             transaction: {
-              ...transaction,
-              summary
+              type: transaction.type || 'Unknown',
+              timestamp: transaction.timestamp,
+              signature: signatureMatch[1],
+              summary,
+              details: JSON.parse(JSON.stringify(transaction))
             }
           };
         }

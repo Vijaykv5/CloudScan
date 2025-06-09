@@ -24,7 +24,7 @@ interface ChatHistoryItem {
   lastActive: number;
 }
 
-export function Sidebar({ theme, children }: { theme: "light" | "dark"; children?: React.ReactNode }) {
+export function Sidebar({ theme }: { theme: "light" | "dark" }) {
   const [isOpen, setIsOpen] = useState(false);
   const { publicKey } = useWallet();
   const { connected } = useWalletCheck({ theme });
