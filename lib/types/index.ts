@@ -87,7 +87,7 @@ export interface BlockchainDataFull {
     timestamp: number;
     signature: string;
     summary?: string;
-    details?: any;
+    details?: TransactionDetails;
   };
 }
 
