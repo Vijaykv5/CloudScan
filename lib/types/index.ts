@@ -5,6 +5,11 @@ export interface BlockchainData {
   accountInfo?: {
     space: number;
     data: string;
+    balance?: {
+      sol: number;
+      lamports: number;
+    };
+    owner?: string;
   } | null;
   balance?: number | null;
   transaction?: {
@@ -67,8 +72,8 @@ export interface StatsCardProps {
 export interface BlockchainDataFull {
   accountInfo?: {
     balance: {
-      lamports: number;
       sol: number;
+      lamports: number;
     };
     owner: string;
     executable: boolean;
@@ -82,7 +87,7 @@ export interface BlockchainDataFull {
     timestamp: number;
     signature: string;
     summary?: string;
-    details?: TransactionDetails;
+    details?: any;
   };
 }
 

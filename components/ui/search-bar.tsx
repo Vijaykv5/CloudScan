@@ -81,7 +81,7 @@ export function SearchBar({
         </motion.div>
         <Input
           type="text"
-          placeholder={connected ? "Describe your cloud project idea..." : "Connect wallet to start chatting..."}
+          placeholder={connected ? "what do you want to know about solana..." : "Connect wallet to start chatting..."}
           value={searchValue}
           onChange={handleInputChange}
           onFocus={() => onFocusChange(true)}

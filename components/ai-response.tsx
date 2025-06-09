@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Response } from "./response";
 import { AIResponseProps } from "../lib/types/index";
 
-export function AIResponse({ message, isFirstMessage }: AIResponseProps) {
+export function AIResponse({ message, isFirstMessage, theme }: AIResponseProps & { theme?: 'light' | 'dark' }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -27,6 +27,7 @@ export function AIResponse({ message, isFirstMessage }: AIResponseProps) {
       ) : (
         <Response 
           response={message.content}
+          theme={theme}
         />
       )}
       

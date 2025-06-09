@@ -6,6 +6,7 @@ import { useStore } from '@/store/useStore';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AIResponse } from '@/components/ai-response';
 import { Suggestions } from '@/components/ui/suggestions';
+import { useWalletCheck } from '@/hooks/useWalletCheck';
 
 // interface Message {
 //   role: 'user' | 'assistant';
@@ -22,6 +23,7 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfaceProps) {
   const { publicKey, connected } = useWallet();
+  const { checkWalletConnection } = useWalletCheck({ theme });
   const { 
     activeChats, 
     currentWallet, 
@@ -68,14 +70,24 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
     }
   }, [publicKey, connected, setCurrentWallet, clearActiveChat, onDisconnect]);
 
+  const handleWalletQuery = (response: string) => {
+    addMessage({
+      role: 'assistant',
+      content: response
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !currentWallet) return;
+    if (!input.trim() || !checkWalletConnection()) return;
 
     const userMessage = input.trim();
     setInput('');
-    addMessage({ role: 'user', content: userMessage });
-    
+    addMessage({
+      role: 'user',
+      content: userMessage
+    });
+
     if (isInitialState) {
       setIsInitialState(false);
       onFirstChat?.();
@@ -88,7 +100,10 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({ 
+          message: userMessage,
+          walletAddress: publicKey?.toString()
+        }),
       });
 
       const data = await response.json();
@@ -160,51 +175,36 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
           </AnimatePresence>
         </div>
       ) : (
-        <>
-          <div className="flex-1 flex flex-col pb-48 overflow-y-auto pt-24">
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto px-4 py-8">
             <AnimatePresence>
               {currentMessages.map((message, index) => (
                 <AIResponse
-                  key={message.timestamp}
+                  key={index}
                   message={message}
                   isFirstMessage={index === 0}
+                  theme={theme}
                 />
               ))}
             </AnimatePresence>
             <div ref={messagesEndRef} />
           </div>
 
-          <motion.div 
-            className="fixed bottom-0 left-0 right-0 py-4"
-            initial={{ y: 0 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <AnimatePresence>
-              {showInput && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="max-w-2xl mx-auto px-4"
-                >
-                  <form onSubmit={handleSubmit}>
-                    <SearchBar
-                      theme={theme}
-                      searchValue={input}
-                      isInputFocused={isInputFocused}
-                      onSearchChange={setInput}
-                      onFocusChange={setIsInputFocused}
-                      buttonIcon={isLoading ? null : <Send className="h-4 w-4 mr-1 text-sky-500" />}
-                      buttonText={isLoading ? "Processing..." : "Send"}
-                    />
-                  </form>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </>
+          <div className="">
+            <form onSubmit={handleSubmit}>
+              <SearchBar
+                theme={theme}
+                searchValue={input}
+                isInputFocused={isInputFocused}
+                onSearchChange={setInput}
+                onFocusChange={setIsInputFocused}
+                buttonIcon={<Send className="h-4 w-4 mr-1 text-sky-500" />}
+                buttonText="Send"
+              />
+            </form>
+          </div>
+
+        </div>
       )}
     </div>
   );

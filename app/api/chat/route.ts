@@ -46,7 +46,10 @@ async function getTokenBalance(address: string) {
   try {
     const pubKey = new PublicKey(address);
     const balance = await connection.getBalance(pubKey);
-    return balance / 1e9; // Convert lamports to SOL
+    return {
+      sol: balance / 1e9, // Convert lamports to SOL
+      lamports: balance
+    };
   } catch (error) {
     console.error('Error fetching token balance:', error);
     return null;
@@ -115,13 +118,18 @@ export async function POST(req: Request) {
       throw new Error('HELIUS_API_KEY is not set in environment variables');
     }
 
-    const { message } = await req.json();
+    const { message, walletAddress } = await req.json();
     
     if (!message) {
       throw new Error('No message provided in request');
     }
 
+    if (!walletAddress) {
+      throw new Error('No wallet address provided in request');
+    }
+
     console.log('Processing message:', message);
+    console.log('Wallet address:', walletAddress);
 
     // Initialize Gemini model
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -140,15 +148,17 @@ export async function POST(req: Request) {
           - Avoid showing raw data unless specifically requested
           - Keep responses concise and engaging
           
+          The user's wallet address is: ${walletAddress}
+          
           For account queries, include ACCOUNT_INFO.
           For balance queries, include TOKEN_BALANCE.
           For transaction queries, include TRANSACTION_INFO.
           
           When including account information, use this format:
-          ACCOUNT_INFO: Address: <address>
+          ACCOUNT_INFO: Address: ${walletAddress}
           
           When including balance information, use this format:
-          TOKEN_BALANCE: Address: <address>
+          TOKEN_BALANCE: Address: ${walletAddress}
           
           When including transaction information, use this format:
           TRANSACTION_INFO: Signature: <signature>
@@ -173,22 +183,16 @@ export async function POST(req: Request) {
     let blockchainData: BlockchainDataFull = {};
     
     if (aiResponse?.includes('ACCOUNT_INFO')) {
-      const addressMatch = aiResponse.match(/Address: ([A-Za-z0-9]+)/);
-      if (addressMatch) {
-        const accountInfo = await getAccountInfo(addressMatch[1]);
-        if (accountInfo) {
-          blockchainData = { ...blockchainData, accountInfo };
-        }
+      const accountInfo = await getAccountInfo(walletAddress);
+      if (accountInfo) {
+        blockchainData = { ...blockchainData, accountInfo };
       }
     }
 
     if (aiResponse?.includes('TOKEN_BALANCE')) {
-      const addressMatch = aiResponse.match(/Address: ([A-Za-z0-9]+)/);
-      if (addressMatch) {
-        const balance = await getTokenBalance(addressMatch[1]);
-        if (balance !== null) {
-          blockchainData = { ...blockchainData, balance };
-        }
+      const balance = await getTokenBalance(walletAddress);
+      if (balance !== null) {
+        blockchainData = { ...blockchainData, balance: balance.sol };
       }
     }
 
@@ -230,12 +234,9 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
-    console.error('Detailed error in chat route:', error);
+    console.error('Error in chat API:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to process chat request',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: 'Failed to process request', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
