@@ -7,6 +7,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { AIResponse } from '@/components/ai-response';
 import { Suggestions } from '@/components/ui/suggestions';
 import { useWalletCheck } from '@/hooks/useWalletCheck';
+import { ChatShimmer } from '@/components/ui/chat-shimmer';
 
 // interface Message {
 //   role: 'user' | 'assistant';
@@ -29,7 +30,8 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
     currentWallet,  
     setCurrentWallet, 
     addMessage, 
-    setIsLoading, 
+    setIsLoading,
+    isLoading,
     clearActiveChat
   } = useStore();
   
@@ -185,6 +187,7 @@ export function ChatInterface({ theme, onFirstChat, onDisconnect }: ChatInterfac
                   theme={theme}
                 />
               ))}
+              {isLoading && <ChatShimmer theme={theme} />}
             </AnimatePresence>
             <div ref={messagesEndRef} />
           </div>
